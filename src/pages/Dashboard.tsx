@@ -1,9 +1,8 @@
-
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PieChart, LineChart, BarChart } from 'recharts';
+import { PieChart, Pie } from 'recharts';
 import { 
   ChevronRight, 
   ChevronUp, 

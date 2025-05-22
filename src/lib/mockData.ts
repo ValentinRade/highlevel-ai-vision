@@ -73,7 +73,7 @@ const aiRecommendations = [
 ];
 
 // Chat messages for the bot
-const chatMessages = [
+export const chatMessages = [
   { 
     user: 'Zeig mir alle Deals mit > 50% Wahrscheinlichkeit.',
     bot: 'Hier sind 5 passende Deals mit über 50% Abschlusswahrscheinlichkeit:\n\n1. Müller AG - Softwarelizenz (75%)\n2. Weber IT Solutions - Consulting (62%)\n3. Becker Pharma - CRM-System (85%)\n4. Hoffmann & Partner - Schulung (58%)\n5. Schneider & Söhne - Cloud Migration (71%)\n\nMöchtest du mehr Details zu einem dieser Deals sehen?'

@@ -1,102 +1,138 @@
 
-import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { 
-  LayoutDashboard, 
-  Users, 
-  PieChart, 
-  PlaySquare, 
-  MessageCircle, 
-  BarChart, 
-  Lightbulb, 
+import { useState } from "react";
+import { NavLink } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import {
+  LayoutDashboard,
+  Users,
+  PieChart,
+  MessagesSquare,
+  BarChart3,
+  Zap,
   Settings,
   ChevronRight,
-  ChevronLeft
-} from 'lucide-react';
+  Menu,
+} from "lucide-react";
+import { useMobile } from "@/hooks/use-mobile";
 
-type NavItemProps = {
-  to: string;
-  icon: React.ElementType;
-  label: string;
-  isCollapsed: boolean;
-};
+interface SidebarProps {
+  isSidebarOpen: boolean;
+  setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}
 
-const NavItem = ({ to, icon: Icon, label, isCollapsed }: NavItemProps) => {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center gap-2 px-3 py-2 rounded-md transition-all duration-200 group",
-          isCollapsed ? "justify-center" : "",
-          isActive 
-            ? "bg-sidebar-primary/10 text-sidebar-primary"
-            : "text-sidebar-foreground/60 hover:bg-sidebar-primary/10 hover:text-sidebar-foreground"
-        )
-      }
-    >
-      <Icon size={20} className={isActive ? "text-sidebar-primary" : ""} />
-      {!isCollapsed && <span className="text-sm font-medium">{label}</span>}
-      {isCollapsed && (
-        <span className="absolute left-full ml-2 rounded-md bg-secondary px-2 py-1 text-xs font-medium text-secondary-foreground opacity-0 shadow-md transition-opacity group-hover:opacity-100 z-50">
-          {label}
-        </span>
-      )}
-    </NavLink>
-  );
-};
+const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) => {
+  const isMobile = useMobile();
+  
+  const navItems = [
+    {
+      title: "Dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />,
+      path: "/dashboard",
+    },
+    {
+      title: "Kontakte",
+      icon: <Users className="h-5 w-5" />,
+      path: "/contacts",
+    },
+    {
+      title: "Pipeline",
+      icon: <PieChart className="h-5 w-5" />,
+      path: "/pipeline",
+    },
+    {
+      title: "Automatisierungen",
+      icon: <ChevronRight className="h-5 w-5" />,
+      path: "/automations",
+    },
+    {
+      title: "Chatbot",
+      icon: <MessagesSquare className="h-5 w-5" />,
+      path: "/chatbot", 
+    },
+    {
+      title: "Analytics",
+      icon: <BarChart3 className="h-5 w-5" />,
+      path: "/analytics",
+    },
+    {
+      title: "AI Lab",
+      icon: <Zap className="h-5 w-5" />,
+      path: "/ai-lab",
+    },
+    {
+      title: "Einstellungen",
+      icon: <Settings className="h-5 w-5" />,
+      path: "/settings",
+    },
+  ];
 
-export const Sidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const toggleCollapse = () => {
-    setIsCollapsed(!isCollapsed);
+  // Toggle sidebar on mobile
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
   };
 
   return (
-    <div 
-      className={cn(
-        "bg-sidebar flex flex-col h-screen border-r border-sidebar-border transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
-      )}
-    >
-      <div className={cn("flex items-center px-3 py-4", isCollapsed ? "justify-center" : "justify-between")}>
-        {!isCollapsed && (
-          <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-sidebar-primary flex items-center justify-center">
-              <span className="font-bold text-white text-xs">AI</span>
-            </div>
-            <span className="text-sidebar-foreground font-semibold">CRM Highlevel</span>
-          </div>
-        )}
-        {isCollapsed && (
-          <div className="h-6 w-6 rounded-md bg-sidebar-primary flex items-center justify-center">
-            <span className="font-bold text-white text-xs">AI</span>
-          </div>
-        )}
-        <button
-          onClick={toggleCollapse}
-          className="text-sidebar-foreground/60 hover:text-sidebar-foreground rounded-md p-1 hover:bg-sidebar-accent"
+    <>
+      {/* Mobile Menu Toggle */}
+      {isMobile && (
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleSidebar}
+          className="fixed top-3 left-3 z-50"
         >
-          {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-        </button>
-      </div>
+          <Menu className="h-5 w-5" />
+        </Button>
+      )}
+      
+      {/* Sidebar */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-40 flex flex-col w-64 bg-card border-r border-border transition-transform",
+          isMobile && !isSidebarOpen ? "-translate-x-full" : "translate-x-0"
+        )}
+      >
+        <div className="flex items-center h-16 px-4 border-b border-border">
+          <h1 className="text-xl font-bold">CRM-System</h1>
+        </div>
 
-      <div className="mt-6 flex flex-col gap-1 px-3 flex-1">
-        <NavItem to="/app" icon={LayoutDashboard} label="Dashboard" isCollapsed={isCollapsed} />
-        <NavItem to="/app/kontakte" icon={Users} label="Kontakte" isCollapsed={isCollapsed} />
-        <NavItem to="/app/pipeline" icon={PieChart} label="Pipeline" isCollapsed={isCollapsed} />
-        <NavItem to="/app/automatisierungen" icon={PlaySquare} label="Automatisierungen" isCollapsed={isCollapsed} />
-        <NavItem to="/app/chatbot" icon={MessageCircle} label="Chatbot" isCollapsed={isCollapsed} />
-        <NavItem to="/app/analysen" icon={BarChart} label="Analysen" isCollapsed={isCollapsed} />
-        <NavItem to="/app/ai-lab" icon={Lightbulb} label="AI-Lab" isCollapsed={isCollapsed} />
-      </div>
+        <nav className="flex-1 overflow-y-auto p-4">
+          <ul className="space-y-1.5">
+            {navItems.map((item) => (
+              <li key={item.path}>
+                <NavLink
+                  to={item.path}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 hover:bg-accent hover:text-accent-foreground",
+                      isActive
+                        ? "bg-accent text-accent-foreground"
+                        : "text-muted-foreground"
+                    )
+                  }
+                >
+                  {item.icon}
+                  <span>{item.title}</span>
+                </NavLink>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
-      <div className="mt-auto px-3 pb-6">
-        <NavItem to="/app/einstellungen" icon={Settings} label="Einstellungen" isCollapsed={isCollapsed} />
+        <div className="p-4 border-t border-border">
+          <div className="flex items-center gap-3 px-3 py-2">
+            <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+              <span className="text-xs font-medium">AM</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium">Alex Mustermann</p>
+              <p className="text-xs text-muted-foreground">Vertriebsleiter</p>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

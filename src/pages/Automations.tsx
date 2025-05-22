@@ -3,90 +3,131 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
+  Dialog,
 } from "@/components/ui/dialog";
 import {
   Plus,
+  Play,
+  Pause,
+  ArrowRight,
+  Settings,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Copy,
+  BarChart,
+  Users,
   Mail,
   MessageSquare,
   Bell,
   CheckCircle,
-  Settings,
-  ArrowRight,
-  Edit,
-  ChevronRight,
-  PieChart,
-  Phone,
+  AlertTriangle,
+  Calendar,
+  Search,
+  Filter,
 } from "lucide-react";
 import { workflows } from "@/lib/mockData";
 
-interface WorkflowProps {
-  id: number;
-  name: string;
-  type: string;
-  isActive: boolean;
-  lastRun: Date;
-  lastRunText: string;
-  steps: {
+interface StepProps {
+  step: {
     id: number;
     type: string;
     delay: number;
     isOptimized: boolean;
-  }[];
-  performance: {
-    openRate: number;
-    clickRate: number;
-    conversion: number;
   };
-  aiOptimized: boolean;
+  isLastStep: boolean;
 }
 
+const WorkflowStep = ({ step, isLastStep }: StepProps) => {
+  let icon;
+  let bgColor;
+  
+  switch (step.type) {
+    case "Email":
+      icon = <Mail className="h-5 w-5" />;
+      bgColor = "bg-blue-500/20";
+      break;
+    case "WhatsApp":
+      icon = <MessageSquare className="h-5 w-5" />;
+      bgColor = "bg-green-500/20";
+      break;
+    case "Reminder":
+      icon = <Bell className="h-5 w-5" />;
+      bgColor = "bg-yellow-500/20";
+      break;
+    case "Aufgabe":
+      icon = <CheckCircle className="h-5 w-5" />;
+      bgColor = "bg-purple-500/20";
+      break;
+    case "Telefonanruf":
+      icon = <MessageSquare className="h-5 w-5" />;
+      bgColor = "bg-orange-500/20";
+      break;
+    default:
+      icon = <CheckCircle className="h-5 w-5" />;
+      bgColor = "bg-gray-500/20";
+  }
+  
+  return (
+    <>
+      <div className="flex items-center">
+        <div className={`h-12 w-12 ${bgColor} rounded-full flex items-center justify-center mr-4`}>
+          {icon}
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium">{step.type}</h3>
+            {step.isOptimized && (
+              <Badge className="ai-badge">
+                AI Optimiert
+              </Badge>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Nach {step.delay} {step.delay === 1 ? "Tag" : "Tagen"}
+          </p>
+        </div>
+      </div>
+      {!isLastStep && (
+        <div className="ml-6 my-2 w-0.5 h-6 bg-border"></div>
+      )}
+    </>
+  );
+};
+
 const Automations = () => {
-  const [allWorkflows, setAllWorkflows] = useState<WorkflowProps[]>(workflows);
-  const [selectedWorkflow, setSelectedWorkflow] = useState<WorkflowProps | null>(null);
-  const [showDetail, setShowDetail] = useState(false);
-  const [showEditor, setShowEditor] = useState(false);
-  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
+  const [filteredWorkflows, setFilteredWorkflows] = useState(workflows);
+  const [showWorkflowEditor, setShowWorkflowEditor] = useState(false);
+  const [showEmailEditor, setShowEmailEditor] = useState(false);
+  const [selectedWorkflow, setSelectedWorkflow] = useState<any>(null);
+  
+  const handleWorkflowClick = (workflow: any) => {
+    setSelectedWorkflow(workflow);
+    setShowWorkflowEditor(true);
+  };
+  
+  const handleOpenEmailEditor = () => {
+    setShowEmailEditor(true);
+  };
   
   // Toggle workflow active state
-  const toggleWorkflowActive = (id: number) => {
-    setAllWorkflows(
-      allWorkflows.map(workflow =>
-        workflow.id === id ? { ...workflow, isActive: !workflow.isActive } : workflow
+  const toggleWorkflowActive = (e: React.MouseEvent, workflowId: number) => {
+    e.stopPropagation();
+    setFilteredWorkflows(prevWorkflows => 
+      prevWorkflows.map(workflow => 
+        workflow.id === workflowId 
+          ? { ...workflow, isActive: !workflow.isActive } 
+          : workflow
       )
     );
-  };
-  
-  // Open workflow detail
-  const openWorkflowDetail = (workflow: WorkflowProps) => {
-    setSelectedWorkflow(workflow);
-    setShowDetail(true);
-  };
-  
-  // Get step icon
-  const getStepIcon = (type: string) => {
-    switch (type) {
-      case 'Email':
-        return <Mail className="h-4 w-4" />;
-      case 'WhatsApp':
-        return <MessageSquare className="h-4 w-4" />;
-      case 'Reminder':
-        return <Bell className="h-4 w-4" />;
-      case 'Aufgabe':
-        return <CheckCircle className="h-4 w-4" />;
-      case 'Telefonanruf':
-        return <Phone className="h-4 w-4" />;
-      case 'Abschluss':
-        return <CheckCircle className="h-4 w-4" />;
-      default:
-        return <Settings className="h-4 w-4" />;
-    }
   };
 
   return (
@@ -94,335 +135,363 @@ const Automations = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Automatisierungen</h1>
-          <p className="text-muted-foreground">Erstelle und verwalte automatisierte Workflows</p>
+          <p className="text-muted-foreground">Erstelle und verwalte automatische Workflows und Kampagnen</p>
         </div>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" /> Workflow erstellen
-        </Button>
+        <div className="flex gap-2">
+          <Button>
+            <Plus className="mr-2 h-4 w-4" /> Workflow erstellen
+          </Button>
+        </div>
       </div>
-
+      
+      {/* Workflow browser */}
       <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Aktive Workflows</CardTitle>
-            <Badge variant="outline">
-              {allWorkflows.filter(workflow => workflow.isActive).length} von {allWorkflows.length} aktiv
-            </Badge>
+        <CardHeader className="pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle>Workflow-Übersicht</CardTitle>
+            <div className="flex items-center gap-2">
+              <div className="relative w-full sm:w-60">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input placeholder="Workflows suchen..." className="pl-9" />
+              </div>
+              <Button variant="outline" size="icon">
+                <Filter className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {allWorkflows.map((workflow) => (
-              <div
-                key={workflow.id}
-                className={`p-4 rounded-md ${
-                  workflow.isActive ? 'bg-secondary/50' : 'bg-secondary/20'
-                } hover:bg-secondary/70 transition-colors`}
-              >
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-md ${workflow.isActive ? 'bg-primary/20' : 'bg-secondary'}`}>
-                      {workflow.type === 'Lead Nurturing' ? (
-                        <Mail className={`h-5 w-5 ${workflow.isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                      ) : workflow.type === 'Onboarding' ? (
-                        <CheckCircle className={`h-5 w-5 ${workflow.isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                      ) : (
-                        <MessageSquare className={`h-5 w-5 ${workflow.isActive ? 'text-primary' : 'text-muted-foreground'}`} />
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-medium">{workflow.name}</h3>
-                      <p className="text-sm text-muted-foreground">
-                        Letzter Lauf: {workflow.lastRunText}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {workflow.aiOptimized && (
-                      <Badge className="ai-badge">AI-optimiert</Badge>
-                    )}
-                    <Switch
-                      checked={workflow.isActive}
-                      onCheckedChange={() => toggleWorkflowActive(workflow.id)}
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openWorkflowDetail(workflow)}
-                    >
-                      Details
-                    </Button>
-                  </div>
-                </div>
-                
-                {/* Workflow Steps Preview */}
-                <div className="mt-4 flex items-center gap-2">
-                  {workflow.steps.map((step, index) => (
-                    <React.Fragment key={step.id}>
-                      <div
-                        className={`flex items-center justify-center h-8 w-8 rounded-full ${
-                          step.isOptimized ? 'bg-primary/20 text-primary' : 'bg-secondary text-foreground/70'
-                        }`}
-                      >
-                        {getStepIcon(step.type)}
+          <Tabs defaultValue="all">
+            <TabsList className="mb-4">
+              <TabsTrigger value="all">Alle</TabsTrigger>
+              <TabsTrigger value="active">Aktiv</TabsTrigger>
+              <TabsTrigger value="inactive">Inaktiv</TabsTrigger>
+              <TabsTrigger value="ai">AI Optimiert</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="space-y-4">
+              {filteredWorkflows.map(workflow => (
+                <div 
+                  key={workflow.id} 
+                  className="border border-border rounded-md p-4 cursor-pointer hover:bg-secondary/20 transition-colors"
+                  onClick={() => handleWorkflowClick(workflow)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className={`h-10 w-10 rounded-full ${workflow.isActive ? 'bg-green-500/20' : 'bg-gray-500/20'} flex items-center justify-center mr-3`}>
+                        {workflow.isActive ? (
+                          <Play className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <Pause className="h-5 w-5 text-gray-500" />
+                        )}
                       </div>
-                      {index < workflow.steps.length - 1 && (
-                        <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                      )}
-                    </React.Fragment>
-                  ))}
+                      <div>
+                        <div className="flex items-center">
+                          <h3 className="font-medium">{workflow.name}</h3>
+                          {workflow.aiOptimized && (
+                            <Badge className="ml-2 ai-badge">AI Optimiert</Badge>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">{workflow.type} • {workflow.steps.length} Schritte • Letzte Ausführung {workflow.lastRunText}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Switch 
+                        checked={workflow.isActive} 
+                        onCheckedChange={(e) => toggleWorkflowActive(e as unknown as React.MouseEvent, workflow.id)} 
+                      />
+                      <Button variant="ghost" size="icon">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Workflow performance */}
+                  <div className="mt-4 grid grid-cols-3 gap-4">
+                    <div className="p-2 bg-secondary/30 rounded-md">
+                      <p className="text-xs text-muted-foreground">Öffnungsrate</p>
+                      <p className="text-sm font-medium">{workflow.performance.openRate}%</p>
+                    </div>
+                    <div className="p-2 bg-secondary/30 rounded-md">
+                      <p className="text-xs text-muted-foreground">Klickrate</p>
+                      <p className="text-sm font-medium">{workflow.performance.clickRate}%</p>
+                    </div>
+                    <div className="p-2 bg-secondary/30 rounded-md">
+                      <p className="text-xs text-muted-foreground">Conversion</p>
+                      <p className="text-sm font-medium">{workflow.performance.conversion}%</p>
+                    </div>
+                  </div>
+                  
+                  {/* Workflow steps preview */}
+                  <div className="mt-4 flex items-center">
+                    {workflow.steps.slice(0, 3).map((step, index) => (
+                      <div key={index} className="flex items-center">
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center text-xs`}>
+                          {step.type === 'Email' ? (
+                            <Mail className="h-4 w-4 text-blue-500" />
+                          ) : step.type === 'WhatsApp' ? (
+                            <MessageSquare className="h-4 w-4 text-green-500" />
+                          ) : step.type === 'Reminder' ? (
+                            <Bell className="h-4 w-4 text-yellow-500" />
+                          ) : step.type === 'Aufgabe' ? (
+                            <CheckCircle className="h-4 w-4 text-purple-500" />
+                          ) : (
+                            <MessageSquare className="h-4 w-4 text-orange-500" />
+                          )}
+                        </div>
+                        {index < 2 && <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />}
+                      </div>
+                    ))}
+                    {workflow.steps.length > 3 && (
+                      <>
+                        <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />
+                        <div className="h-6 w-6 rounded-full bg-secondary flex items-center justify-center">
+                          <span className="text-xs">+{workflow.steps.length - 3}</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 </div>
+              ))}
+            </TabsContent>
+            
+            {/* Placeholder for other tabs */}
+            <TabsContent value="active">
+              <div className="p-4 text-center text-muted-foreground">
+                Filter für aktive Workflows
               </div>
-            ))}
-          </div>
+            </TabsContent>
+            <TabsContent value="inactive">
+              <div className="p-4 text-center text-muted-foreground">
+                Filter für inaktive Workflows
+              </div>
+            </TabsContent>
+            <TabsContent value="ai">
+              <div className="p-4 text-center text-muted-foreground">
+                Filter für AI-optimierte Workflows
+              </div>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      {/* Workflow Detail Dialog */}
-      <Dialog open={showDetail} onOpenChange={setShowDetail}>
-        <DialogContent className="sm:max-w-[700px]">
-          {selectedWorkflow && (
-            <>
-              <DialogHeader>
-                <div className="flex justify-between items-center">
-                  <DialogTitle>{selectedWorkflow.name}</DialogTitle>
-                  <Switch
-                    checked={selectedWorkflow.isActive}
-                    onCheckedChange={() => toggleWorkflowActive(selectedWorkflow.id)}
-                  />
-                </div>
-                <DialogDescription>
-                  {selectedWorkflow.type} • {selectedWorkflow.steps.length} Schritte • Erstellt am 12.05.2023
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-6">
-                {/* Workflow Performance */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 bg-secondary/50 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Öffnungsrate</p>
-                    <p className="text-2xl font-semibold">{selectedWorkflow.performance.openRate}%</p>
-                  </div>
-                  <div className="p-4 bg-secondary/50 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Klickrate</p>
-                    <p className="text-2xl font-semibold">{selectedWorkflow.performance.clickRate}%</p>
-                  </div>
-                  <div className="p-4 bg-secondary/50 rounded-md text-center">
-                    <p className="text-sm text-muted-foreground">Conversion</p>
-                    <p className="text-2xl font-semibold">{selectedWorkflow.performance.conversion}%</p>
-                  </div>
-                </div>
-
-                {/* Workflow Visualization */}
-                <div>
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-medium">Workflow-Visualisierung</h3>
-                    <div className="flex items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm">AI-Optimierung</span>
-                        <Switch checked={selectedWorkflow.aiOptimized} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-secondary/20 p-6 rounded-md">
-                    <div className="flex flex-col items-center">
-                      {selectedWorkflow.steps.map((step, index) => (
-                        <React.Fragment key={step.id}>
-                          <div className="flex items-center gap-4">
-                            <div
-                              className={`flex items-center justify-center h-12 w-12 rounded-full ${
-                                step.isOptimized ? 'bg-primary/20 text-primary' : 'bg-secondary text-foreground/70'
-                              }`}
-                            >
-                              {getStepIcon(step.type)}
-                            </div>
-                            <div className="bg-secondary/70 p-3 rounded-md min-w-[250px]">
-                              <div className="flex justify-between items-center">
-                                <div>
-                                  <p className="font-medium">{step.type}</p>
-                                  <p className="text-xs text-muted-foreground">
-                                    Verzögerung: {step.delay} {step.delay === 1 ? 'Tag' : 'Tage'}
-                                  </p>
-                                </div>
-                                {step.isOptimized && (
-                                  <Badge className="ai-badge">AI-optimiert</Badge>
-                                )}
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          
-                          {index < selectedWorkflow.steps.length - 1 && (
-                            <div className="h-8 w-0.5 bg-secondary my-1"></div>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-3">
-                  <Button onClick={() => {
-                    setShowDetail(false);
-                    setShowEditor(true);
-                  }}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Bearbeiten
-                  </Button>
-                  <Button variant="outline" onClick={() => {
-                    setShowDetail(false);
-                    setShowAiSuggestions(true);
-                  }}>
-                    <MessageSquare className="mr-2 h-4 w-4" />
-                    AI-Vorschläge anzeigen
-                  </Button>
-                </div>
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      {/* Workflow Editor Dialog */}
-      <Dialog open={showEditor} onOpenChange={setShowEditor}>
+      
+      {/* Workflow editor dialog */}
+      <Dialog open={showWorkflowEditor} onOpenChange={setShowWorkflowEditor}>
         <DialogContent className="sm:max-w-[800px]">
           <DialogHeader>
             <DialogTitle>Workflow bearbeiten</DialogTitle>
-            <DialogDescription>
-              Passe den Workflow an und optimiere ihn mit KI-Unterstützung.
-            </DialogDescription>
           </DialogHeader>
-
-          <div className="h-[500px] bg-secondary/20 rounded-md p-4 flex items-center justify-center">
-            <div className="text-center">
-              <div className="mx-auto w-16 h-16 bg-secondary/70 rounded-full flex items-center justify-center mb-4">
-                <Edit className="h-6 w-6 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">Visueller Editor</h3>
-              <p className="text-muted-foreground max-w-md mx-auto mb-4">
-                Hier würde der visuelle Editor-Mockup mit den Workflow-Schritten, Verbindungen und Einstellungen angezeigt werden.
-              </p>
-              <Button variant="outline">
-                Editor laden
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setShowEditor(false)}>
-              Abbrechen
-            </Button>
-            <Button onClick={() => setShowEditor(false)}>
-              Speichern
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* AI Suggestions Dialog */}
-      <Dialog open={showAiSuggestions} onOpenChange={setShowAiSuggestions}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>KI-Vorschläge</DialogTitle>
-            <DialogDescription>
-              Basierend auf der Analyse deines Workflows hat unsere KI folgende Optimierungen identifiziert.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-md">
-              <div className="flex items-center gap-3 mb-3">
-                <div className="h-10 w-10 bg-cyan-500/20 rounded-full flex items-center justify-center">
-                  <MessageSquare className="h-5 w-5 text-cyan-500" />
+          {selectedWorkflow && (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Input 
+                    value={selectedWorkflow.name} 
+                    className="text-lg font-bold h-auto py-1 w-60"
+                  />
+                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Edit className="h-4 w-4" />
+                  </Button>
                 </div>
-                <div>
-                  <h3 className="font-medium">Performance-Analyse</h3>
-                  <p className="text-xs text-muted-foreground">Basierend auf 324 ähnlichen Workflows</p>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" size="sm">
+                    <Copy className="h-4 w-4 mr-2" /> Duplizieren
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <BarChart className="h-4 w-4 mr-2" /> Statistik
+                  </Button>
+                  <Button variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-2" /> Löschen
+                  </Button>
                 </div>
               </div>
-
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <PieChart className="h-4 w-4 text-cyan-500 mt-1" />
+              
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 space-y-6">
+                  {/* Workflow steps */}
                   <div>
-                    <p className="font-medium text-sm">Schwachstelle identifiziert</p>
-                    <p className="text-sm text-muted-foreground">
-                      Der Übergang von Schritt 2 zu Schritt 3 zeigt einen Conversion-Abfall von 38%. Eine Verzögerung von 3 Tagen (statt 2) könnte die Conversion um ca. 15% steigern.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <PieChart className="h-4 w-4 text-cyan-500 mt-1" />
-                  <div>
-                    <p className="font-medium text-sm">Optimierungsvorschlag</p>
-                    <p className="text-sm text-muted-foreground">
-                      Die E-Mail-Betreffzeile im ersten Schritt hat eine unterdurchschnittliche Öffnungsrate. Alternative Vorschläge: "Ihre persönliche Analyse ist bereit" oder "Exklusive Einblicke für [Company Name]".
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <PieChart className="h-4 w-4 text-cyan-500 mt-1" />
-                  <div>
-                    <p className="font-medium text-sm">Neuer Schritt empfohlen</p>
-                    <p className="text-sm text-muted-foreground">
-                      Nach Schritt 4 sollte ein zusätzlicher Telefonanruf eingefügt werden, falls keine Antwort erfolgt. Ähnliche Workflows zeigen eine 22% höhere Conversion-Rate durch diesen zusätzlichen Touchpoint.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-4 bg-secondary/50 rounded-md">
-              <h3 className="font-medium mb-2">Vorgeschlagener optimierter Workflow</h3>
-              <div className="space-y-2">
-                {[
-                  { id: 1, type: 'Email', description: 'Verbesserte Betreffzeile und Personalisierung', isOptimized: true },
-                  { id: 2, type: 'Reminder', description: 'Unverändert', isOptimized: false },
-                  { id: 3, type: 'WhatsApp', description: 'Verzögerung auf 3 Tage erhöht', isOptimized: true },
-                  { id: 4, type: 'Email', description: 'Inhalt optimiert basierend auf Zielgruppenprofil', isOptimized: true },
-                  { id: 5, type: 'Telefonanruf', description: 'Neu hinzugefügt (bedingt)', isOptimized: true },
-                  { id: 6, type: 'Abschluss', description: 'Unverändert', isOptimized: false }
-                ].map((step) => (
-                  <div
-                    key={step.id}
-                    className={`p-3 rounded-md ${step.isOptimized ? 'bg-cyan-500/10 border border-cyan-500/20' : 'bg-secondary/70'}`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-3">
-                        <div className={`h-8 w-8 rounded-full flex items-center justify-center ${step.isOptimized ? 'bg-cyan-500/20 text-cyan-500' : 'bg-secondary'}`}>
-                          {getStepIcon(step.type)}
+                    <h3 className="text-base font-medium mb-4">Workflow-Schritte</h3>
+                    <div className="space-y-2">
+                      {selectedWorkflow.steps.map((step: any, index: number) => (
+                        <div 
+                          key={step.id} 
+                          className="border border-border rounded-md p-4 hover:bg-secondary/20 transition-colors cursor-pointer"
+                          onClick={handleOpenEmailEditor}
+                        >
+                          <WorkflowStep step={step} isLastStep={index === selectedWorkflow.steps.length - 1} />
                         </div>
-                        <div>
-                          <p className="text-sm font-medium">{step.type}</p>
-                          <p className="text-xs text-muted-foreground">{step.description}</p>
-                        </div>
-                      </div>
-                      {step.isOptimized && (
-                        <Badge className="ai-badge">KI</Badge>
-                      )}
+                      ))}
+                      <Button variant="outline" className="w-full">
+                        <Plus className="h-4 w-4 mr-2" /> Schritt hinzufügen
+                      </Button>
                     </div>
                   </div>
-                ))}
+                  
+                  {/* Trigger conditions */}
+                  <div>
+                    <h3 className="text-base font-medium mb-4">Auslösebedingungen</h3>
+                    <div className="border border-border rounded-md p-4 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Select icon={<Users className="h-4 w-4" />} label="Zielgruppe" value="Alle neuen Leads" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Select icon={<AlertTriangle className="h-4 w-4" />} label="Bedingungen" value="Lead-Score > 50" />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Select icon={<Calendar className="h-4 w-4" />} label="Timing" value="Sofort nach Auslösung" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Sidebar */}
+                <div className="space-y-6">
+                  <div className="border border-border rounded-md p-4">
+                    <h3 className="text-base font-medium mb-4">Einstellungen</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm">Status</p>
+                        <Switch checked={selectedWorkflow.isActive} />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm">Typ</p>
+                        <Select 
+                          value={selectedWorkflow.type} 
+                          options={[
+                            "Lead Nurturing",
+                            "Onboarding",
+                            "Reaktivierung",
+                            "Event-Follow-up",
+                            "Angebotsnachfassung"
+                          ]} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-border rounded-md p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-base font-medium">KI-Optimierung</h3>
+                      <Switch checked={selectedWorkflow.aiOptimized} />
+                    </div>
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <p className="text-sm">Anpassungsstärke</p>
+                          <p className="text-xs">65%</p>
+                        </div>
+                        <Slider defaultValue={[65]} max={100} step={1} />
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between">
+                          <p className="text-sm">Nachrichtenfrequenz</p>
+                          <p className="text-xs">Moderat</p>
+                        </div>
+                        <Slider defaultValue={[50]} max={100} step={1} />
+                      </div>
+                      <div>
+                        <Button variant="outline" className="w-full">
+                          <Settings className="h-4 w-4 mr-2" /> Weitere Einstellungen
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="border border-border rounded-md p-4">
+                    <h3 className="text-base font-medium mb-2">Performance</h3>
+                    <div className="space-y-2">
+                      <div className="flex justify-between text-sm">
+                        <span>Öffnungsrate:</span>
+                        <span className="font-medium">{selectedWorkflow.performance.openRate}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Klickrate:</span>
+                        <span className="font-medium">{selectedWorkflow.performance.clickRate}%</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span>Konversion:</span>
+                        <span className="font-medium">{selectedWorkflow.performance.conversion}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-2 mt-4">
+                <Button variant="outline" onClick={() => setShowWorkflowEditor(false)}>
+                  Abbrechen
+                </Button>
+                <Button>
+                  Speichern
+                </Button>
               </div>
             </div>
-
-            <div className="flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setShowAiSuggestions(false)}>
-                Ablehnen
+          )}
+        </DialogContent>
+      </Dialog>
+      
+      {/* Email editor dialog */}
+      <Dialog open={showEmailEditor} onOpenChange={setShowEmailEditor}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>E-Mail bearbeiten</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Betreff</label>
+              <Input defaultValue="Ihr persönliches Angebot - [Firmenname]" />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">E-Mail-Inhalt</label>
+              <div className="min-h-[300px] p-4 border border-border rounded-md">
+                <p className="text-muted-foreground">
+                  [E-Mail-Editor würde hier angezeigt]
+                </p>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Absender</label>
+                <Input defaultValue="Alex Mustermann" />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Absender-E-Mail</label>
+                <Input defaultValue="alex@firma.de" />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowEmailEditor(false)}>
+                Abbrechen
               </Button>
-              <Button onClick={() => setShowAiSuggestions(false)}>
-                Änderungen übernehmen
+              <Button>
+                Speichern
               </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
+    </div>
+  );
+};
+
+// Simple Select component for the workflow editor
+interface SelectProps {
+  icon?: React.ReactNode;
+  label?: string;
+  value: string;
+  options?: string[];
+}
+
+const Select = ({ icon, label, value, options }: SelectProps) => {
+  return (
+    <div className="flex items-center gap-2 w-full">
+      {icon && <div>{icon}</div>}
+      {label && <p className="text-sm min-w-24">{label}:</p>}
+      <div className="flex-1 px-3 py-1.5 rounded-md bg-secondary/50 text-sm flex items-center justify-between cursor-pointer hover:bg-secondary/70">
+        <span>{value}</span>
+        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+      </div>
     </div>
   );
 };
