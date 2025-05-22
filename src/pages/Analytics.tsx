@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -37,21 +38,36 @@ const colors = {
   green: "hsl(var(--success))",
   red: "hsl(var(--destructive))",
   yellow: "hsl(var(--warning))",
+  barColor: "#4a85f5", // New dedicated color for bars
 };
 
-// Custom tooltip
+// Enhanced custom tooltip with better visibility
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-background border border-border p-2 rounded-md shadow-sm">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-sm text-muted-foreground">
-          Umsatz: {new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(payload[0].value)}
+      <div className="bg-card border border-border p-3 rounded-md shadow-md">
+        <p className="text-sm font-medium text-foreground mb-1">{label}</p>
+        <p className="text-sm text-foreground">
+          <span className="font-medium">Wert:</span> {payload[0].value.toFixed(2)}%
         </p>
       </div>
     );
   }
+  return null;
+};
 
+// Conversion rate tooltip
+const ConversionTooltip = ({ active, payload, label }: any) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-card border border-border p-3 rounded-md shadow-md">
+        <p className="text-sm font-medium text-foreground">{payload[0].payload.campaign}</p>
+        <p className="text-sm text-foreground">
+          <span className="font-medium">Conversion Rate:</span> {payload[0].value.toFixed(2)}%
+        </p>
+      </div>
+    );
+  }
   return null;
 };
 
@@ -259,7 +275,7 @@ const Analytics = () => {
 
       {/* Small charts */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Conversion Rate */}
+        {/* Conversion Rate - Improved styling */}
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Conversion Rate</CardTitle>
@@ -272,12 +288,31 @@ const Analytics = () => {
                   data={conversionRate} 
                   margin={{ top: 20, right: 30, left: 60, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" tickFormatter={(value) => `${value}%`} />
-                  <YAxis type="category" dataKey="campaign" />
-                  <Tooltip formatter={(value) => [`${value}%`, 'Conversion Rate']} />
-                  <Legend />
-                  <Bar dataKey="rate" fill={colors.yellow} barSize={20} />
+                  <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                  <XAxis 
+                    type="number" 
+                    tickFormatter={(value) => `${value}%`}
+                    domain={[0, 'dataMax + 2']}
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="campaign"
+                    tick={{ fill: 'hsl(var(--foreground))' }}
+                  />
+                  <Tooltip content={<ConversionTooltip />} cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }} />
+                  <Bar 
+                    dataKey="rate" 
+                    fill={colors.barColor} 
+                    barSize={20}
+                    radius={[0, 4, 4, 0]}
+                  >
+                    {conversionRate.map((entry, index) => (
+                      <Cell 
+                        key={`cell-${index}`}
+                        fill={colors.barColor}
+                      />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
