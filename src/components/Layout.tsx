@@ -8,11 +8,11 @@ const Layout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   
   return (
-    <div className="flex h-screen bg-background overflow-hidden">
+    <div className="flex h-screen bg-background">
       <Sidebar isSidebarOpen={sidebarOpen} setIsSidebarOpen={setSidebarOpen} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <Navbar />
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="flex-1 overflow-y-auto p-2 md:p-4">
           <Outlet />
         </main>
       </div>

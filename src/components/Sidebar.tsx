@@ -89,7 +89,7 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) => {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-40 flex flex-col w-64 bg-card border-r border-border transition-transform",
+          "fixed inset-y-0 left-0 z-40 flex flex-col w-56 bg-card border-r border-border transition-transform",
           isMobile && !isSidebarOpen ? "-translate-x-full" : "translate-x-0"
         )}
       >
@@ -97,8 +97,8 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) => {
           <h1 className="text-xl font-bold">CRM-System</h1>
         </div>
 
-        <nav className="flex-1 overflow-y-auto p-4">
-          <ul className="space-y-1.5">
+        <nav className="flex-1 overflow-y-auto p-2">
+          <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
                 <NavLink
@@ -132,6 +132,11 @@ const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) => {
           </div>
         </div>
       </div>
+      
+      {/* Content Offset on Desktop when sidebar is open */}
+      {!isMobile && (
+        <div className="w-56 flex-shrink-0" />
+      )}
     </>
   );
 };
