@@ -33,6 +33,7 @@ import {
   Calendar,
   Search,
   Filter,
+  ChevronRight,
 } from "lucide-react";
 import { workflows } from "@/lib/mockData";
 

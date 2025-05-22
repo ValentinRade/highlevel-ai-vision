@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -206,7 +205,8 @@ const Analytics = () => {
                   <Line 
                     type="monotone"
                     name="KI-Prognose"
-                    dataKey={(data, index) => aiPredictedRevenue[index]?.value || 0}
+                    dataKey="value"
+                    data={aiPredictedRevenue}
                     stroke={colors.accent}
                     strokeWidth={2}
                     strokeDasharray="5 5"
@@ -245,7 +245,8 @@ const Analytics = () => {
                   />
                   <Bar 
                     name="KI-Prognose" 
-                    dataKey={(data, index) => aiPredictedRevenue[index]?.value || 0} 
+                    dataKey="value"
+                    data={aiPredictedRevenue}
                     fill={colors.accent} 
                     fillOpacity={0.7}
                   />

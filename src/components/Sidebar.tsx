@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -14,7 +13,7 @@ import {
   ChevronRight,
   Menu,
 } from "lucide-react";
-import { useMobile } from "@/hooks/use-mobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarProps {
   isSidebarOpen: boolean;
@@ -22,7 +21,7 @@ interface SidebarProps {
 }
 
 const Sidebar = ({ isSidebarOpen, setIsSidebarOpen }: SidebarProps) => {
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   
   const navItems = [
     {
