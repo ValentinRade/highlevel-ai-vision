@@ -331,7 +331,7 @@ const Pipeline = () => {
                     <div className="space-y-2">
                       <div className="flex items-start gap-2 text-sm">
                         <ChevronRight className="h-4 w-4 text-cyan-500 mt-0.5" />
-                        <span>3 Deals mit >80% Abschlusswahrscheinlichkeit</span>
+                        <span>3 Deals mit &gt;80% Abschlusswahrscheinlichkeit</span>
                       </div>
                       <div className="flex items-start gap-2 text-sm">
                         <ChevronRight className="h-4 w-4 text-cyan-500 mt-0.5" />
